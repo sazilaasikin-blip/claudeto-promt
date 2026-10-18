@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cara Optimize Claude</title>
+<meta name="description" content="Nota digital interaktif: prompt lebih baik, hasil lebih tepat, kurang ulang-alik.">
+<style>
+/* ===== Palet Claude × neo-brutalism (adaptasi) ===== */
+:root{
+  --dark:#141413;--light:#faf9f5;--orange:#d97757;--blue:#6a9bcc;--green:#788c5d;
+  --bg:#e8e6dc;--surface:#faf9f5;--surface-2:#efede5;--text:#141413;--muted:#4a4842;
+  --line:#141413;--sh:#141413;--brand:#d97757;--brandsoft:#f7e3da;
+  --good:#4f6339;--good-soft:#e6ebdd;--bad:#9b2c15;--bad-soft:#f7d9d2;
+  --code:#141413;--codeink:#faf9f5;--onb:#141413;--focus:#2f6db0;--bw:3px;
+  --head:Poppins,"Arial Black","Helvetica Neue",Arial,sans-serif;
+  --body:Lora,Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#141413;--surface:#1f1e1c;--surface-2:#2a2825;--text:#faf9f5;--muted:#d4d1c7;
+  --line:#faf9f5;--sh:#d97757;--brandsoft:#3a241c;
+  --good:#a9bf86;--good-soft:#242a1c;--bad:#ff9d85;--bad-soft:#4a1d12;
+  --code:#0c0c0b;--codeink:#faf9f5;--focus:#8fbbe8;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:1.125rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+h1,h2,h3,strong,b,.btn,.chip,.eyebrow,.brand,#progressLabel,.big-num,.label-bad,.label-good,.field label,.secnum{font-family:var(--head)}
+a{color:var(--text);text-decoration-color:var(--brand);text-decoration-thickness:3px;text-underline-offset:4px;font-weight:600;word-break:break-word}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:absolute;left:12px;top:-70px;z-index:400;background:var(--brand);color:var(--onb);border:var(--bw) solid var(--line);padding:10px 14px;font-weight:800;font-family:var(--head);text-decoration:none;box-shadow:4px 4px 0 var(--sh)}
+.skip:focus{top:10px}
+
+/* Top bar */
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:var(--bw) solid var(--line)}
+.topbar-inner{max-width:1100px;margin:0 auto;padding:10px 16px 6px;display:flex;align-items:center;gap:12px}
+.brand{flex:1;min-width:0;min-height:44px;background:none;border:0;color:var(--text);font-weight:800;font-size:1rem;letter-spacing:-.3px;text-transform:uppercase;text-align:left;cursor:pointer;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{color:var(--brand)}
+:root[data-theme="light"] .brand span{color:#b4532f}
+.progress-wrap{max-width:1100px;margin:0 auto;padding:0 16px 10px;display:flex;align-items:center;gap:12px}
+.progress{flex:1;height:16px;background:var(--bg);border:2px solid var(--line);overflow:hidden}
+.progress-fill{height:100%;width:0;background:var(--brand);transition:width .3s steps(12)}
+#progressLabel{font-size:.9rem;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;min-width:44px;padding:12px 18px;
+  border:var(--bw) solid var(--line);background:var(--surface);color:var(--text);font-size:1rem;font-weight:800;line-height:1.2;
+  text-align:center;cursor:pointer;text-decoration:none;box-shadow:4px 4px 0 var(--sh);transition:transform .08s,box-shadow .08s}
+.btn:active:not([disabled]){transform:translate(4px,4px);box-shadow:0 0 0 var(--sh)}
+@media (hover:hover){.btn:hover:not([disabled]){transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--sh)}}
+.btn-primary{background:var(--brand);color:var(--onb)}
+.btn-secondary{background:var(--surface);color:var(--text)}
+.btn-danger{background:var(--bad-soft);color:var(--text);border-color:var(--bad);box-shadow:4px 4px 0 var(--bad)}
+.btn-theme{min-height:46px;padding:8px 12px;font-size:.92rem;white-space:nowrap;box-shadow:3px 3px 0 var(--sh)}
+.btn[disabled]{cursor:not-allowed;background:var(--surface-2);color:var(--muted);border-style:dashed;box-shadow:none}
+.btn-block{width:100%}
+
+/* Layout */
+main{max-width:1100px;margin:0 auto;padding:22px 16px 0}
+main:focus{outline:none}
+.screen-head{display:flex;gap:14px;align-items:flex-start;margin:4px 0 22px}
+.secnum{flex:none;width:52px;height:52px;display:grid;place-items:center;background:var(--brand);color:var(--onb);font-weight:800;font-size:1.4rem;border:var(--bw) solid var(--line);box-shadow:4px 4px 0 var(--sh)}
+.eyebrow{display:inline-block;font-size:.8rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text);background:var(--surface-2);border:2px solid var(--line);padding:2px 9px;margin:0 0 8px}
+h2.screen-title{font-size:clamp(1.6rem,6vw,2.4rem);line-height:1.08;margin:0 0 8px;letter-spacing:-.04em;font-weight:800;text-transform:uppercase}
+h2.screen-title:focus{outline:none}
+.lead{color:var(--muted);margin:0;font-size:1.08rem}
+
+/* Hero (skrin utama) */
+.hero{background:var(--orange);color:var(--dark);border:var(--bw) solid var(--line);box-shadow:8px 8px 0 var(--sh);padding:26px 22px;margin:0 0 22px}
+.hero .pill{display:inline-flex;align-items:center;gap:8px;background:var(--light);color:var(--dark);border:var(--bw) solid var(--dark);box-shadow:3px 3px 0 var(--dark);padding:6px 13px;font-family:var(--head);font-size:.78rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0 0 16px}
+.hero .pill i{width:10px;height:10px;background:var(--orange);border:2px solid var(--dark);display:block}
+.hero h2.screen-title{font-size:clamp(2.1rem,9vw,3.6rem);color:var(--dark);letter-spacing:-.05em;line-height:.98;margin-bottom:12px}
+.hero .lead{color:var(--dark);font-weight:500;max-width:46ch}
+
+/* Bento grid */
+.bento{display:grid;grid-template-columns:1fr;gap:18px}
+.card{background:var(--surface);border:var(--bw) solid var(--line);box-shadow:6px 6px 0 var(--sh);padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h3{margin:0;font-size:1.15rem;line-height:1.25;letter-spacing:-.02em;font-weight:800}
+.card p{margin:0}
+.card ul{margin:0;padding-left:1.2em}
+.card li{margin:5px 0}
+.card .grow{flex:1;display:flex;flex-direction:column;gap:10px}
+.card.accent{background:var(--brandsoft)}
+.card.is-done{background:var(--good-soft)}
+@media (min-width:640px){.bento{grid-template-columns:repeat(2,1fr)}.span-4,.span-6{grid-column:1/-1}}
+@media (min-width:960px){.bento{grid-template-columns:repeat(6,1fr)}.span-2{grid-column:span 2}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-6{grid-column:span 6}}
+
+.chip{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border:2px solid var(--line)}
+.chip.done{background:var(--green);color:var(--light)}
+:root[data-theme="dark"] .chip.done{background:var(--good);color:var(--dark)}
+.chip.open{background:var(--brand);color:var(--onb)}
+.chip.locked{background:var(--surface-2);color:var(--text)}
+.hint{font-size:.98rem;color:var(--muted)}
+.big-num{font-size:3.2rem;font-weight:800;line-height:1;margin:0;letter-spacing:-.04em}
+
+.label-bad,.label-good{display:inline-block;font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border:2px solid var(--line)}
+.label-bad{background:var(--bad-soft);color:var(--text)}
+.label-good{background:var(--good-soft);color:var(--text)}
+.quote{font-style:italic}
+
+/* Kotak salin (gaya prompt box) */
+.copybox{display:flex;flex-direction:column;gap:12px}
+.copybox pre{margin:0;background:var(--code);color:var(--codeink);border:var(--bw) solid var(--line);box-shadow:5px 5px 0 var(--sh);padding:16px;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:1rem;line-height:1.6}
+.copybox .btn{align-self:flex-start}
+
+/* Action bar */
+.actionbar{position:sticky;bottom:0;z-index:10;margin:28px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:var(--bw) solid var(--line);display:flex;gap:12px;align-items:center}
+.actionbar .btn-primary{flex:1}
+@media (min-width:640px){.actionbar{justify-content:space-between}.actionbar .btn-primary{flex:0 1 auto;min-width:300px}}
+.spacer{height:28px}
+
+/* Kuiz */
+.options{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.opt{width:100%;min-height:58px;text-align:left;justify-content:flex-start;font-family:var(--body);font-weight:600;font-size:1.05rem;padding:12px 14px}
+.opt .key{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;background:var(--surface-2);border:2px solid var(--line);font-family:var(--head);font-weight:800}
+.opt[disabled]{cursor:default;color:var(--text);background:var(--surface);border-style:solid;box-shadow:4px 4px 0 var(--sh)}
+.opt.correct,.opt.correct[disabled]{background:var(--good-soft);border-color:var(--line)}
+.opt.correct .key{background:var(--green);color:var(--light)}
+.opt.wrong,.opt.wrong[disabled]{background:var(--bad-soft)}
+.opt.wrong .key{background:var(--bad);color:var(--light)}
+.feedback{border:var(--bw) solid var(--line);box-shadow:5px 5px 0 var(--sh);padding:16px}
+.feedback.ok{background:var(--good-soft)}
+.feedback.no{background:var(--bad-soft)}
+.feedback strong{display:block;margin-bottom:4px;font-size:1.05rem}
+.review{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.review li{border-left:6px solid var(--line);padding:2px 0 2px 12px}
+.review li.r-ok{border-color:var(--green)}
+.review li.r-no{border-color:var(--bad)}
+
+/* Borang */
+.field label{display:block;font-weight:800;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.field input{width:100%;min-height:54px;font:inherit;font-size:1.1rem;padding:10px 14px;border:var(--bw) solid var(--line);background:var(--surface);color:var(--text);border-radius:0}
+.field input:focus{background:var(--brandsoft)}
+.error{color:var(--bad);font-weight:700;margin-top:8px;font-family:var(--head)}
+
+/* Sijil */
+.cert{background:#faf9f5;color:#141413;border:4px solid #141413;box-shadow:10px 10px 0 #d97757;display:flex;flex-direction:column;padding:0;text-align:center;overflow:hidden}
+.cert .c-band{height:18px;background:#d97757;border-bottom:3px solid #141413}
+.cert .c-in{padding:26px 18px 30px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.cert .c-small{font-family:var(--head);font-size:.82rem;letter-spacing:.3em;text-transform:uppercase;font-weight:800;color:#b4532f;margin:0}
+.cert .c-title{font-family:var(--head);font-size:clamp(1.6rem,6vw,2.5rem);font-weight:800;letter-spacing:-.03em;line-height:1;margin:0;text-transform:uppercase}
+.cert .c-rule{width:90px;height:4px;background:#d97757;margin:6px 0}
+.cert p{margin:0;color:#53514b}
+.cert .c-name{font-family:var(--head);font-size:clamp(1.6rem,6vw,2.5rem);font-weight:800;color:#b4532f;letter-spacing:-.03em;line-height:1.1;margin:4px 0 0;word-break:break-word}
+.cert .c-name.empty{color:#6e6b63;font-weight:600;font-style:italic}
+.cert .c-hr{width:70%;height:2px;background:#b0aea5;margin-bottom:4px}
+.cert .c-course{font-family:var(--head);font-size:1.35rem;font-weight:800;color:#141413}
+.cert .c-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 26px;margin-top:10px;font-family:var(--head);font-weight:700;color:#141413}
+
+.notice{max-width:1100px;margin:14px auto 0;padding:12px 16px;border:var(--bw) solid var(--line);background:var(--bad-soft);box-shadow:4px 4px 0 var(--sh);font-family:var(--head);font-weight:600;font-size:.95rem}
+
+/* Dialog */
+dialog{border:var(--bw) solid var(--line);box-shadow:8px 8px 0 var(--sh);padding:0;background:var(--surface);color:var(--text);max-width:min(92vw,460px);width:100%;border-radius:0}
+dialog::backdrop{background:rgba(20,20,19,.6)}
+dialog form{padding:22px;display:flex;flex-direction:column;gap:16px;margin:0}
+dialog h2{margin:0;font-size:1.3rem;text-transform:uppercase;letter-spacing:-.02em}
+dialog p{margin:0}
+.dlg-actions{display:flex;flex-direction:column-reverse;gap:12px}
+@media (min-width:480px){.dlg-actions{flex-direction:row;justify-content:flex-end}}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:no-preference){
+  .screen-anim>*{animation:rise .45s cubic-bezier(.2,.7,.2,1) backwards}
+  .screen-anim>*:nth-child(2){animation-delay:.06s}
+  .screen-anim>*:nth-child(3){animation-delay:.12s}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}}
+}
+
+/* Cetak: sijil sahaja */
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{background:#fff}
+  body *{visibility:hidden}
+  #certPrint,#certPrint *{visibility:visible}
+  #certPrint{position:absolute;left:0;top:0;width:100%;min-height:180mm;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #certPrint .c-in{flex:1;justify-content:center;padding:20mm 16mm;gap:12px}
+  .topbar,.actionbar{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Langkau ke kandungan</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button type="button" class="brand" id="brandBtn" aria-label="Cara Optimize Claude, kembali ke senarai langkah">Cara Optimize <span>Claude</span></button>
+    <button type="button" class="btn btn-theme" id="themeBtn"></button>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress" id="progressBar" role="progressbar" aria-label="Kemajuan pembelajaran" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <span id="progressLabel">0/6 siap</span>
+  </div>
+</header>
+
+<div id="storageNotice" class="notice" role="status" hidden>
+  Pelayar ni menyekat storan. Nota masih boleh digunakan, tapi kemajuan tak akan disimpan bila halaman ditutup.
+</div>
+
+<main id="main" tabindex="-1"></main>
+
+<div id="live" class="sr-only" aria-live="polite"></div>
+
+<dialog id="confirmDlg" aria-labelledby="dlgTitle" aria-describedby="dlgMsg">
+  <form method="dialog">
+    <h2 id="dlgTitle">Sahkan tindakan</h2>
+    <p id="dlgMsg"></p>
+    <div class="dlg-actions">
+      <button type="submit" value="cancel" class="btn btn-secondary" id="dlgCancel">Batal</button>
+      <button type="submit" value="ok" class="btn btn-danger" id="dlgOk">Ya, teruskan</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Kandungan (dari nota "Cara Optimize Claude") ---------- */
+var STEPS = [
+  {
+    title: 'Bagi konteks dan nyatakan output',
+    lead: 'Tip 1 dan 2 dalam nota.',
+    cards: [
+      { span:3, title:'Bagi konteks, bukan arahan sahaja',
+        html:'<p>Terangkan siapa <strong>audience</strong>, untuk apa output tu, dan apa yang dah ada.</p><p>Claude tak boleh baca fikiran.</p>' },
+      { span:3, title:'Contoh',
+        html:'<p><span class="label-bad">Contoh lemah</span></p><p class="quote">"Tulis emel pasal deadline."</p><p><span class="label-good">Lebih baik</span></p>',
+        copy:'Draf emel kepada client, minta extend deadline 1 minggu sebab vendor lambat. Tone sopan tapi tegas.' },
+      { span:2, title:'Nyatakan output yang anda nak',
+        html:'<ul><li><strong>Format</strong>: bullet, jadual, emel</li><li><strong>Panjang</strong>: contoh, 200 patah perkataan</li><li><strong>Tone</strong></li><li><strong>Bahasa</strong></li></ul>' },
+      { span:2, title:'Cakap apa yang perlu ada',
+        html:'<p>Bukan sekadar apa yang tak nak.</p>' },
+      { span:2, title:'Bagi contoh output',
+        html:'<p>Bagi contoh output yang bagus kalau ada.</p><p>Satu contoh lebih berkesan dari 10 ayat penerangan.</p>' }
+    ]
+  },
+  {
+    title: 'Susun prompt dengan kemas',
+    lead: 'Tip 3 dan mini-template prompt.',
+    cards: [
+      { span:2, title:'Asingkan arahan, data dan contoh',
+        html:'<p>Guna heading atau tag macam ini:</p>',
+        copy:'<dokumen>...</dokumen>' },
+      { span:2, title:'Dokumen panjang di atas',
+        html:'<p>Letak dokumen panjang di atas, soalan di bawah.</p>' },
+      { span:2, title:'Pecahkan tugas besar',
+        html:'<p>Tugas besar? Pecahkan jadi beberapa langkah.</p><p>Satu prompt, satu langkah.</p>' },
+      { span:6, title:'Mini-template prompt', accent:true,
+        html:'<p>Contoh susunan prompt dari nota:</p>',
+        copy:'[KONTEKS] Saya PM untuk projek X. Audience: pengurusan atasan.\n[TUGAS] Ringkaskan status projek dari nota di bawah.\n[OUTPUT] 5 bullet, maksimum 150 patah perkataan, Bahasa Melayu, tone profesional.\n[CONTOH] (tampal contoh laporan lama yang anda suka)\n[DATA] <nota> ... </nota>\n[NOTA] Kalau ada maklumat tak cukup, tanya saya dulu.' }
+    ]
+  },
+  {
+    title: 'Minta Claude fikir dulu',
+    lead: 'Tip 4 dalam nota.',
+    cards: [
+      { span:6, title:'Untuk analisis atau keputusan', accent:true,
+        html:'<p>Tambah ayat ini dalam prompt:</p>',
+        copy:'Fikir step by step, senaraikan andaian, kemudian bagi cadangan.' },
+      { span:3, title:'Minta Claude tanya soalan dulu',
+        html:'<p>Kalau maklumat tak cukup, minta Claude tanya soalan dulu.</p>' },
+      { span:3, title:'Minta 2–3 pilihan',
+        html:'<p>Minta 2–3 pilihan dengan trade-off, bukan satu jawapan sahaja.</p>' }
+    ]
+  },
+  {
+    title: 'Guna feature yang ada',
+    lead: 'Tip 5 dalam nota.',
+    cards: [
+      { span:3, title:'Projects',
+        html:'<p>Simpan dokumen rujukan dan custom instructions untuk kerja berulang.</p>' },
+      { span:3, title:'Preferences &amp; Memory',
+        html:'<p>Set gaya bahasa dan konteks diri sekali, terpakai setiap chat.</p>' },
+      { span:2, title:'Web search',
+        html:'<p>Untuk harga, berita dan polisi semasa.</p><p>Minta sumber.</p>' },
+      { span:2, title:'Connectors',
+        html:'<p>Gmail, Drive, Calendar.</p><p>Claude baca data sebenar, tak perlu copy-paste.</p>' },
+      { span:2, title:'Fail &amp; artifact',
+        html:'<p>Minta terus PDF, Excel, slides atau dokumen siap guna.</p>' }
+    ]
+  },
+  {
+    title: 'Iterate dan semak sebelum guna',
+    lead: 'Tip 6 dan 7 dalam nota.',
+    cards: [
+      { span:3, title:'Bagi feedback spesifik',
+        html:'<p>Elak <span class="quote">"buat lebih baik"</span>. Cakap dengan spesifik, contohnya:</p>',
+        copy:'Pendekkan perenggan 2, tukar tone jadi lebih santai.' },
+      { span:3, title:'Edit prompt asal',
+        html:'<p>Kalau jawapan lari jauh, edit prompt asal.</p><p>Lebih bersih dari tampal pembetulan.</p>' },
+      { span:2, title:'Mula chat baru',
+        html:'<p>Bila topik tukar, mula chat baru.</p><p>Chat terlalu panjang boleh kurangkan fokus.</p>' },
+      { span:2, title:'Sahkan sendiri',
+        html:'<p>Fakta, nombor dan rujukan undang-undang: sahkan sendiri.</p>' },
+      { span:2, title:'Tanya balik',
+        html:'<p>Minta Claude nilai jawapannya sendiri:</p>',
+        copy:'Apa kelemahan cadangan ni? Apa yang awak tak pasti?' },
+      { span:6, title:'Rujukan lanjut',
+        html:'<p><a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank" rel="noopener">docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview</a></p>' }
+    ]
+  }
+];
+
+var QUIZ = [
+  { q:'Antara prompt berikut, yang mana memberi konteks paling lengkap?',
+    opts:['Tulis emel pasal deadline.',
+          'Draf emel kepada client, minta extend deadline 1 minggu sebab vendor lambat. Tone sopan tapi tegas.',
+          'Tulis emel yang bagus.',
+          'Emel deadline. Cepat.'],
+    a:1,
+    why:'Prompt ni nyatakan audience (client), tujuan (extend 1 minggu), sebab (vendor lambat) dan tone (sopan tapi tegas). Claude tak boleh baca fikiran, jadi konteks perlu ditulis.' },
+  { q:'Prompt anda ada dokumen panjang. Di mana patut letak dokumen tu?',
+    opts:['Di bawah soalan',
+          'Di atas, dan soalan di bawah',
+          'Dalam chat yang berasingan',
+          'Tak perlu letak dokumen'],
+    a:1,
+    why:'Dokumen panjang diletak di atas, soalan di bawah. Asingkan juga arahan, data dan contoh guna heading atau tag macam <dokumen>...</dokumen>.' },
+  { q:'Anda perlukan bantuan untuk analisis atau keputusan. Ayat mana yang sesuai dalam prompt?',
+    opts:['Bagi satu jawapan muktamad sahaja.',
+          'Fikir step by step, senaraikan andaian, kemudian bagi cadangan.',
+          'Jawab tanpa tanya apa-apa soalan.',
+          'Buat lebih baik.'],
+    a:1,
+    why:'Untuk analisis atau keputusan, minta Claude fikir dulu dan senaraikan andaian. Minta juga 2–3 pilihan dengan trade-off, dan benarkan Claude tanya soalan dulu kalau maklumat tak cukup.' },
+  { q:'Feature mana yang sesuai untuk dapatkan harga, berita atau polisi semasa?',
+    opts:['Projects','Preferences & Memory','Web search','Fail & artifact'],
+    a:2,
+    why:'Web search digunakan untuk maklumat semasa seperti harga, berita dan polisi. Minta sumber sekali.' },
+  { q:'Jawapan Claude lari jauh dari apa yang anda mahu. Apa langkah yang paling bersih?',
+    opts:['Tampal pembetulan panjang di bawah jawapan',
+          'Taip "buat lebih baik"',
+          'Edit prompt asal',
+          'Teruskan dalam chat sama walaupun topik dah tukar'],
+    a:2,
+    why:'Edit prompt asal lebih bersih dari tampal pembetulan. Bila bagi feedback, buat spesifik, dan mula chat baru bila topik tukar.' },
+  { q:'Jawapan Claude ada fakta, nombor dan rujukan undang-undang. Apa yang patut anda buat?',
+    opts:['Terus guna kerana jawapan nampak yakin',
+          'Sahkan sendiri sebelum guna',
+          'Minta Claude ulang jawapan yang sama',
+          'Abaikan semua nombor'],
+    a:1,
+    why:'Fakta, nombor dan rujukan undang-undang perlu disahkan sendiri. Boleh juga tanya balik: "Apa kelemahan cadangan ni? Apa yang awak tak pasti?"' }
+];
+
+var TOTAL = STEPS.length + 1; // 5 bahagian + kuiz
+var KEY = 'nota-optimize-claude-v1';
+
+/* ---------- Storan (selamat jika disekat) ---------- */
+function defaults(){
+  return { done: STEPS.map(function(){return false;}), quiz:{answers:[], completed:false, score:0},
+           quizIdx:0, name:'', theme:null, screen:'home', completedAt:null };
+}
+function load(){
+  try { var raw = window.localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return null; }
+}
+var storageWarned = false;
+function save(){
+  try { window.localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch(e){ if(!storageWarned){ storageWarned = true; var n=document.getElementById('storageNotice'); if(n) n.hidden=false; } }
+}
+function sanitize(s){
+  var d = defaults();
+  if(!s || typeof s !== 'object') return d;
+  if(Array.isArray(s.done) && s.done.length === STEPS.length) d.done = s.done.map(Boolean);
+  if(s.quiz && typeof s.quiz === 'object'){
+    if(Array.isArray(s.quiz.answers)) d.quiz.answers = s.quiz.answers.slice(0, QUIZ.length).map(function(v){ return (typeof v==='number' && v>=0 && v<4) ? v : null; });
+    d.quiz.completed = !!s.quiz.completed;
+    d.quiz.score = Number(s.quiz.score) || 0;
+  }
+  if(typeof s.quizIdx === 'number' && s.quizIdx>=0 && s.quizIdx<QUIZ.length) d.quizIdx = Math.floor(s.quizIdx);
+  if(typeof s.name === 'string') d.name = s.name.slice(0, 80);
+  if(s.theme === 'light' || s.theme === 'dark') d.theme = s.theme;
+  if(typeof s.screen === 'string') d.screen = s.screen;
+  if(typeof s.completedAt === 'string') d.completedAt = s.completedAt;
+  return d;
+}
+var state = sanitize(load());
+(function testStorage(){
+  try { var t='__t'+Date.now(); window.localStorage.setItem(t,'1'); window.localStorage.removeItem(t); }
+  catch(e){ storageWarned = true; var n=document.getElementById('storageNotice'); if(n) n.hidden=false; }
+})();
+
+/* ---------- Helpers ---------- */
+function h(tag, attrs){
+  var el = document.createElement(tag);
+  if(attrs){
+    Object.keys(attrs).forEach(function(k){
+      var v = attrs[k];
+      if(v === null || v === undefined || v === false) return;
+      if(k === 'text') el.textContent = v;
+      else if(k === 'html') el.innerHTML = v;
+      else if(k === 'class') el.className = v;
+      else if(k.slice(0,2) === 'on') el.addEventListener(k.slice(2), v);
+      else if(v === true) el.setAttribute(k, '');
+      else el.setAttribute(k, v);
+    });
+  }
+  for(var i=2;i<arguments.length;i++){
+    var c = arguments[i];
+    if(c === null || c === undefined || c === false) continue;
+    if(Array.isArray(c)) c.forEach(function(x){ if(x) el.appendChild(typeof x==='string'?document.createTextNode(x):x); });
+    else el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return el;
+}
+function announce(msg){
+  var live = document.getElementById('live');
+  live.textContent = '';
+  setTimeout(function(){ live.textContent = msg; }, 50);
+}
+function pad(n){ return (n<10?'0':'')+n; }
+function fmtDate(d){ return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+
+function allStepsDone(){ return state.done.every(Boolean); }
+function stepUnlocked(i){ return i === 0 || state.done[i-1]; }
+function canOpen(screen){
+  if(screen === 'home') return true;
+  var m = /^step-(\d)$/.exec(screen);
+  if(m){ var i = +m[1]; return i < STEPS.length && stepUnlocked(i); }
+  if(screen === 'quiz') return allStepsDone();
+  if(screen === 'result' || screen === 'cert') return allStepsDone() && state.quiz.completed;
+  return false;
+}
+function progressCount(){ return state.done.filter(Boolean).length + (state.quiz.completed ? 1 : 0); }
+
+/* ---------- Tema ---------- */
+function currentTheme(){
+  if(state.theme) return state.theme;
+  try { return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; } catch(e){ return 'light'; }
+}
+function applyTheme(){
+  var t = currentTheme();
+  document.documentElement.setAttribute('data-theme', t);
+  var b = document.getElementById('themeBtn');
+  b.textContent = t === 'dark' ? '☀ Tema cerah' : '☾ Tema gelap';
+  b.setAttribute('aria-label', t === 'dark' ? 'Tukar ke tema cerah' : 'Tukar ke tema gelap');
+}
+document.getElementById('themeBtn').addEventListener('click', function(){
+  state.theme = currentTheme() === 'dark' ? 'light' : 'dark';
+  save(); applyTheme();
+  announce(state.theme === 'dark' ? 'Tema gelap dipilih' : 'Tema cerah dipilih');
+});
+document.getElementById('brandBtn').addEventListener('click', function(){ go('home'); });
+
+/* ---------- Progress bar ---------- */
+function updateProgress(){
+  var c = progressCount(), pct = Math.round(c / TOTAL * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  var bar = document.getElementById('progressBar');
+  bar.setAttribute('aria-valuenow', String(pct));
+  bar.setAttribute('aria-valuetext', c + ' daripada ' + TOTAL + ' langkah siap');
+  document.getElementById('progressLabel').textContent = c + '/' + TOTAL + ' siap · ' + pct + '%';
+}
+
+/* ---------- Dialog pengesahan ---------- */
+function confirmDialog(title, message, okLabel){
+  return new Promise(function(resolve){
+    var dlg = document.getElementById('confirmDlg');
+    if(!dlg || typeof dlg.showModal !== 'function'){ resolve(window.confirm(message)); return; }
+    var prev = document.activeElement;
+    document.getElementById('dlgTitle').textContent = title;
+    document.getElementById('dlgMsg').textContent = message;
+    document.getElementById('dlgOk').textContent = okLabel;
+    dlg.returnValue = '';
+    dlg.addEventListener('close', function(){
+      resolve(dlg.returnValue === 'ok');
+      if(prev && document.body.contains(prev) && prev.focus) prev.focus();
+    }, { once:true });
+    dlg.showModal();
+    document.getElementById('dlgCancel').focus();
+  });
+}
+
+/* ---------- Salin ---------- */
+function copyText(text, btn){
+  var label = btn.textContent;
+  function done(ok){
+    btn.textContent = ok ? '✓ Disalin' : 'Gagal. Pilih teks dan salin manual';
+    announce(ok ? 'Teks disalin' : 'Gagal menyalin teks');
+    btn.focus();
+    setTimeout(function(){ btn.textContent = label; }, 2200);
+  }
+  function fallback(){
+    var ok = false;
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.top='0'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); ok = document.execCommand('copy'); document.body.removeChild(ta);
+    } catch(e){ ok = false; }
+    done(ok);
+  }
+  try {
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, fallback);
+      return;
+    }
+  } catch(e){}
+  fallback();
+}
+function copyBox(text){
+  var pre = h('pre', { text:text });
+  var btn = h('button', { type:'button', class:'btn btn-secondary', text:'⧉ Salin' });
+  btn.addEventListener('click', function(){ copyText(text, btn); });
+  return h('div', { class:'copybox' }, pre, btn);
+}
+
+/* ---------- Navigasi ---------- */
+function go(screen){
+  if(!canOpen(screen)) screen = 'home';
+  state.screen = screen; save(); render();
+  try { window.scrollTo({ top:0 }); } catch(e){ window.scrollTo(0,0); }
+  var t = document.getElementById('screen-title');
+  if(t) t.focus({ preventScroll:true });
+}
+function head(eyebrow, title, lead, num){
+  return h('div', { class:'screen-head' },
+    num ? h('div', { class:'secnum', 'aria-hidden':'true', text:String(num) }) : null,
+    h('div', null,
+      eyebrow ? h('p', { class:'eyebrow', text:eyebrow }) : null,
+      h('h2', { class:'screen-title', id:'screen-title', tabindex:'-1', text:title }),
+      lead ? h('p', { class:'lead', text:lead }) : null));
+}
+function nextAction(){
+  for(var i=0;i<STEPS.length;i++){
+    if(!state.done[i]) return { label:(progressCount()===0?'Mula belajar':'Sambung: Langkah '+(i+1))+' →', screen:'step-'+i };
+  }
+  if(!state.quiz.completed) return { label:'Mula kuiz →', screen:'quiz' };
+  return { label:'Lihat sijil →', screen:'cert' };
+}
+
+/* ---------- Skrin: Senarai ---------- */
+function renderHome(main){
+  var na = nextAction();
+  main.appendChild(h('section', { class:'hero', 'aria-label':'Pengenalan' },
+    h('p', { class:'pill' }, h('i', { 'aria-hidden':'true' }), 'Nota digital interaktif'),
+    h('h2', { class:'screen-title', id:'screen-title', tabindex:'-1', text:'Cara Optimize Claude' }),
+    h('p', { class:'lead', text:'Nota ringkas: prompt lebih baik, hasil lebih tepat, kurang ulang-alik.' })));
+  var grid = h('div', { class:'bento' });
+
+  grid.appendChild(h('section', { class:'card span-4', 'aria-label':'Langkah seterusnya' },
+    h('p', { class:'grow', text:'5 bahagian, satu kuiz ringkas dan sijil. Setiap bahagian terbuka selepas bahagian sebelumnya ditanda siap.' }),
+    h('button', { type:'button', class:'btn btn-primary btn-block', text:na.label, onclick:function(){ go(na.screen); } })));
+
+  var c = progressCount();
+  grid.appendChild(h('section', { class:'card span-2', 'aria-label':'Ringkasan kemajuan' },
+    h('p', { class:'big-num', text:c + '/' + TOTAL }),
+    h('p', { class:'hint', text:'langkah siap' })));
+
+  var spans = [3,3,2,2,2];
+  STEPS.forEach(function(s, i){
+    var done = state.done[i], open = stepUnlocked(i);
+    var chip = done ? h('span', { class:'chip done', text:'✓ Siap' })
+             : open ? h('span', { class:'chip open', text:'Sedia' })
+             : h('span', { class:'chip locked', text:'🔒 Berkunci' });
+    var btn = open
+      ? h('button', { type:'button', class:'btn btn-secondary btn-block', text: done ? 'Ulang kaji' : 'Buka langkah', 'aria-label':(done?'Ulang kaji ':'Buka ')+'Langkah '+(i+1)+': '+s.title, onclick:function(){ go('step-'+i); } })
+      : h('button', { type:'button', class:'btn btn-block', disabled:true, text:'Siapkan Langkah '+i+' dahulu' });
+    grid.appendChild(h('article', { class:'card span-'+spans[i]+(done?' is-done':'') },
+      chip,
+      h('p', { class:'eyebrow', text:'Langkah ' + (i+1) }),
+      h('h3', { class:'grow', text:s.title }),
+      btn));
+  });
+
+  var qOpen = allStepsDone();
+  grid.appendChild(h('article', { class:'card span-3' },
+    state.quiz.completed ? h('span', { class:'chip done', text:'✓ Siap · ' + state.quiz.score + '/' + QUIZ.length })
+      : qOpen ? h('span', { class:'chip open', text:'Sedia' }) : h('span', { class:'chip locked', text:'🔒 Berkunci' }),
+    h('h3', { text:'Kuiz ringkas' }),
+    h('p', { class:'hint grow', text: QUIZ.length + ' soalan pelbagai pilihan, dengan jawapan dan penjelasan.' }),
+    qOpen ? h('button', { type:'button', class:'btn btn-secondary btn-block', text: state.quiz.completed ? 'Lihat keputusan' : 'Buka kuiz', onclick:function(){ go(state.quiz.completed ? 'result' : 'quiz'); } })
+          : h('button', { type:'button', class:'btn btn-block', disabled:true, text:'Siapkan 5 langkah dahulu' })));
+
+  var cOpen = canOpen('cert');
+  grid.appendChild(h('article', { class:'card span-3' },
+    cOpen ? h('span', { class:'chip open', text:'Sedia' }) : h('span', { class:'chip locked', text:'🔒 Berkunci' }),
+    h('h3', { text:'Sijil' }),
+    h('p', { class:'hint grow', text:'Sijil boleh dicetak selepas semua langkah dan kuiz selesai.' }),
+    cOpen ? h('button', { type:'button', class:'btn btn-secondary btn-block', text:'Buka sijil', onclick:function(){ go('cert'); } })
+          : h('button', { type:'button', class:'btn btn-block', disabled:true, text:'Siapkan kuiz dahulu' })));
+
+  grid.appendChild(h('section', { class:'card span-6', 'aria-label':'Tetapan kemajuan' },
+    h('h3', { text:'Mula semula' }),
+    h('p', { class:'hint', text:'Kemajuan disimpan dalam pelayar ini sahaja. Padam jika mahu mula dari awal atau peranti ini dikongsi.' }),
+    h('button', { type:'button', class:'btn btn-danger', text:'Padam semua kemajuan', onclick:function(){
+      confirmDialog('Padam semua kemajuan?', 'Semua tanda siap, jawapan kuiz dan nama pada sijil akan dipadam. Tindakan ini tidak boleh diundur.', 'Ya, padam semua').then(function(ok){
+        if(!ok) return;
+        var theme = state.theme; state = defaults(); state.theme = theme;
+        go('home'); announce('Semua kemajuan telah dipadam');
+      });
+    } })));
+
+  main.appendChild(grid);
+  main.appendChild(h('div', { class:'spacer' }));
+}
+
+/* ---------- Skrin: Langkah ---------- */
+function renderStep(main, i){
+  var s = STEPS[i];
+  main.appendChild(head('Langkah ' + (i+1) + ' daripada ' + STEPS.length, s.title, s.lead, i+1));
+  var grid = h('div', { class:'bento' });
+  s.cards.forEach(function(c){
+    var card = h('article', { class:'card span-' + c.span + (c.accent ? ' accent' : '') },
+      h('h3', { html:c.title }),
+      c.html ? h('div', { class:'grow', html:c.html }) : null);
+    // susun semula supaya paragraf berada terus dalam kad
+    if(c.copy) card.appendChild(copyBox(c.copy));
+    grid.appendChild(card);
+  });
+  main.appendChild(grid);
+
+  var isLast = i === STEPS.length - 1;
+  var nextScreen = isLast ? 'quiz' : 'step-' + (i+1);
+  var primary;
+  if(!state.done[i]){
+    primary = h('button', { type:'button', class:'btn btn-primary', text:'✓ Tandakan siap & teruskan', onclick:function(){
+      state.done[i] = true; save();
+      announce('Langkah ' + (i+1) + ' ditanda siap. ' + (isLast ? 'Kuiz kini terbuka.' : 'Langkah ' + (i+2) + ' kini terbuka.'));
+      go(nextScreen);
+    } });
+  } else {
+    primary = h('button', { type:'button', class:'btn btn-primary', text: isLast ? (state.quiz.completed ? 'Lihat keputusan kuiz →' : 'Ke kuiz →') : 'Langkah ' + (i+2) + ' →', onclick:function(){
+      go(isLast && state.quiz.completed ? 'result' : nextScreen);
+    } });
+  }
+  main.appendChild(h('div', { class:'actionbar' },
+    h('button', { type:'button', class:'btn btn-secondary', text:'← Senarai', onclick:function(){ go('home'); } }),
+    primary));
+}
+
+/* ---------- Skrin: Kuiz ---------- */
+function renderQuiz(main){
+  var idx = state.quizIdx;
+  // sambung pada soalan pertama yang belum dijawab jika perlu
+  if(state.quiz.answers[idx] !== undefined && state.quiz.answers[idx] !== null){ /* papar maklum balas */ }
+  var item = QUIZ[idx];
+  var answered = typeof state.quiz.answers[idx] === 'number';
+  var chosen = state.quiz.answers[idx];
+
+  main.appendChild(head('Soalan ' + (idx+1) + ' daripada ' + QUIZ.length, 'Kuiz ringkas', null));
+  var card = h('section', { class:'card', 'aria-labelledby':'qtext' });
+  card.appendChild(h('h3', { id:'qtext', text:item.q }));
+
+  var list = h('ul', { class:'options' });
+  var letters = ['A','B','C','D'];
+  item.opts.forEach(function(o, k){
+    var cls = 'btn opt';
+    if(answered){
+      if(k === item.a) cls += ' correct';
+      else if(k === chosen) cls += ' wrong';
+    }
+    var label = o;
+    if(answered && k === item.a) label = o + '  ✓ Jawapan betul';
+    else if(answered && k === chosen) label = o + '  ✗ Pilihan anda';
+    var b = h('button', { type:'button', class:cls, disabled:answered ? true : null },
+      h('span', { class:'key', 'aria-hidden':'true', text:letters[k] }),
+      h('span', { text:label }));
+    if(!answered){
+      b.addEventListener('click', function(){
+        state.quiz.answers[idx] = k; save(); render();
+        var fb = document.getElementById('feedback'); if(fb) fb.focus();
+      });
+    }
+    list.appendChild(h('li', null, b));
+  });
+  card.appendChild(list);
+
+  if(answered){
+    var ok = chosen === item.a;
+    card.appendChild(h('div', { class:'feedback ' + (ok ? 'ok' : 'no'), id:'feedback', tabindex:'-1', role:'status' },
+      h('strong', { text: ok ? '✓ Betul.' : '✗ Kurang tepat. Jawapan betul: ' + letters[item.a] + '.' }),
+      h('p', { text:item.why })));
+  }
+  main.appendChild(card);
+
+  var bar = h('div', { class:'actionbar' },
+    h('button', { type:'button', class:'btn btn-secondary', text:'← Senarai', onclick:function(){ go('home'); } }));
+  if(answered){
+    var last = idx === QUIZ.length - 1;
+    bar.appendChild(h('button', { type:'button', class:'btn btn-primary', text: last ? 'Lihat keputusan →' : 'Soalan seterusnya →', onclick:function(){
+      if(last){
+        var score = 0;
+        QUIZ.forEach(function(q, n){ if(state.quiz.answers[n] === q.a) score++; });
+        state.quiz.score = score; state.quiz.completed = true;
+        if(!state.completedAt) state.completedAt = fmtDate(new Date());
+        save(); announce('Kuiz selesai. Skor ' + score + ' daripada ' + QUIZ.length + '. Sijil kini terbuka.');
+        go('result');
+      } else {
+        state.quizIdx = idx + 1; save(); go('quiz');
+      }
+    } }));
+  } else {
+    bar.appendChild(h('p', { class:'hint', text:'Pilih satu jawapan.' }));
+  }
+  main.appendChild(bar);
+}
+
+/* ---------- Skrin: Keputusan ---------- */
+function renderResult(main){
+  main.appendChild(head('Kuiz selesai', 'Keputusan kuiz', null));
+  var grid = h('div', { class:'bento' });
+  grid.appendChild(h('section', { class:'card accent span-2', 'aria-label':'Skor' },
+    h('p', { class:'big-num', text:state.quiz.score + '/' + QUIZ.length }),
+    h('p', { class:'hint', text:'jawapan betul' })));
+  var rv = h('ol', { class:'review' });
+  QUIZ.forEach(function(q, n){
+    var a = state.quiz.answers[n], ok = a === q.a;
+    rv.appendChild(h('li', { class: ok ? 'r-ok' : 'r-no' },
+      h('p', null, h('strong', { text:(n+1) + '. ' + q.q })),
+      h('p', { text:(ok ? '✓ ' : '✗ Anda pilih: ' + (typeof a==='number' ? q.opts[a] : '-') + ' · ') + 'Jawapan: ' + q.opts[q.a] })));
+  });
+  grid.appendChild(h('section', { class:'card span-4', 'aria-label':'Semakan jawapan' }, h('h3', { text:'Semakan jawapan' }), rv));
+  grid.appendChild(h('section', { class:'card span-6' },
+    h('h3', { text:'Ulang kuiz' }),
+    h('p', { class:'hint', text:'Jawapan dan skor sekarang akan dipadam.' }),
+    h('button', { type:'button', class:'btn btn-danger', text:'Ulang kuiz', onclick:function(){
+      confirmDialog('Ulang kuiz?', 'Jawapan dan skor kuiz sekarang akan dipadam, dan sijil berkunci semula sehingga kuiz siap. Tindakan ini tidak boleh diundur.', 'Ya, ulang kuiz').then(function(ok){
+        if(!ok) return;
+        state.quiz = { answers:[], completed:false, score:0 }; state.quizIdx = 0; state.completedAt = null;
+        go('quiz'); announce('Kuiz dimulakan semula');
+      });
+    } })));
+  main.appendChild(grid);
+  main.appendChild(h('div', { class:'actionbar' },
+    h('button', { type:'button', class:'btn btn-secondary', text:'← Senarai', onclick:function(){ go('home'); } }),
+    h('button', { type:'button', class:'btn btn-primary', text:'Lihat sijil →', onclick:function(){ go('cert'); } })));
+}
+
+/* ---------- Skrin: Sijil ---------- */
+function renderCert(main){
+  main.appendChild(head('Tahniah', 'Sijil penyelesaian', 'Tulis nama anda, kemudian cetak atau simpan sebagai PDF.'));
+  var grid = h('div', { class:'bento' });
+
+  var input = h('input', { id:'nameInput', type:'text', autocomplete:'name', maxlength:'80', value:state.name, 'aria-describedby':'nameErr' });
+  var err = h('p', { id:'nameErr', class:'error', role:'alert', hidden:true, text:'Sila tulis nama dahulu.' });
+  grid.appendChild(h('section', { class:'card span-6' },
+    h('div', { class:'field' }, h('label', { for:'nameInput', text:'Nama pada sijil' }), input, err)));
+
+  var nameEl = h('p', { class:'c-name' + (state.name.trim() ? '' : ' empty'), text: state.name.trim() || 'Nama anda' });
+  input.addEventListener('input', function(){
+    state.name = input.value.slice(0,80); save();
+    var v = state.name.trim();
+    nameEl.textContent = v || 'Nama anda';
+    nameEl.className = 'c-name' + (v ? '' : ' empty');
+    if(v) err.hidden = true;
+  });
+
+  var cert = h('section', { class:'cert span-6', id:'certPrint', 'aria-label':'Pratonton sijil' },
+    h('div', { class:'c-band', 'aria-hidden':'true' }),
+    h('div', { class:'c-in' },
+      h('p', { class:'c-small', text:'Nota digital interaktif' }),
+      h('p', { class:'c-title', text:'Sijil Penyelesaian' }),
+      h('div', { class:'c-rule', 'aria-hidden':'true' }),
+      h('p', { text:'Dengan ini disahkan bahawa' }),
+      nameEl,
+      h('div', { class:'c-hr', 'aria-hidden':'true' }),
+      h('p', { text:'telah menamatkan' }),
+      h('p', { class:'c-course', text:'Cara Optimize Claude' }),
+      h('p', { text:STEPS.length + ' bahagian dan kuiz ringkas' }),
+      h('div', { class:'c-meta' },
+        h('span', { text:'Skor kuiz: ' + state.quiz.score + '/' + QUIZ.length }),
+        h('span', { text:'Tarikh: ' + (state.completedAt || fmtDate(new Date())) }))));
+  grid.appendChild(cert);
+  main.appendChild(grid);
+
+  main.appendChild(h('div', { class:'actionbar' },
+    h('button', { type:'button', class:'btn btn-secondary', text:'← Senarai', onclick:function(){ go('home'); } }),
+    h('button', { type:'button', class:'btn btn-primary', text:'🖨 Cetak sijil', onclick:function(){
+      if(!state.name.trim()){ err.hidden = false; input.focus(); return; }
+      window.print();
+    } })));
+}
+
+/* ---------- Render ---------- */
+function render(){
+  if(!canOpen(state.screen)) state.screen = 'home';
+  var main = document.getElementById('main');
+  main.innerHTML = '';
+  main.className = 'screen-anim';
+  var m = /^step-(\d)$/.exec(state.screen);
+  if(m) renderStep(main, +m[1]);
+  else if(state.screen === 'quiz') renderQuiz(main);
+  else if(state.screen === 'result') renderResult(main);
+  else if(state.screen === 'cert') renderCert(main);
+  else renderHome(main);
+  updateProgress();
+}
+
+applyTheme();
+try {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if(!state.theme) applyTheme(); });
+} catch(e){}
+render();
+})();
+</script>
+</body>
+</html>
